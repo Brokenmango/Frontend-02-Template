@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    div #id.class[attr=test] {
+      font-size: 30px;
+      color: red;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <div class="class" id="id" attr="test">123</div>
+  </div>
+</body>
+<script>
+// 实现复杂选择器
+// 只实现了“空格”关系：即后代
+function match(selector, element) {
+  const selectParts = selector.split(' ').reverse()
+  if (!matchCompond(selectParts[0], element)) return false
+  let count = 1
+  let i = 1
+  element = element.parentElement
+  while(element && count < selectParts.length) {
+    if (matchCompond(selectParts[i],element)) {
+      count ++
+      i ++
+    }
+    element = element.parentElement
+  }
+  if (count === selectParts.length) return true
+  return false
+}
+
+// 实现复合选择器，它需要满足所有的简单选择器
+// 包括的简单选择器有类型选择器，id选择器，class选择器，属性选择器(仅实现第二种，[att=val])
+function matchCompond(selector, element) {
+  const simpleSelectors = selector.split(/(?=\.)|(?=#)|(?=\[)/)
+  for (let simpleSelector of simpleSelectors) {
+    if (simpleSelector.charAt(0) === '#') { // id选择器
+      const attr = element.attributes.getNamedItem('id')
+      if (!(attr && attr.value === simpleSelector.replace('#', ''))) {
+        return false
+      }
+    } else if (simpleSelector.charAt(0) === '.') {// class选择器
+      const attr = element.attributes.getNamedItem('class')
+      if (!(attr && attr.value === simpleSelector.replace('.', ''))) {
+        return false
+      }
+    } else if (simpleSelector.charAt(0) === '[') {// 属性选择器
+      const temp = simpleSelector.slice(1,-1).split('=')
+      const attribute = temp[0]
+      const value = temp[1]
+      const attr = element.attributes.getNamedItem(attribute)
+      if (!(attr && attr.value === value)) {
+        return false
+      }
+    } else { //类型选择器
+      if (element.tagName.toLowerCase() !== simpleSelector) {
+        return false
+      }
+    }
+   }
+   return true
+}
+console.log(match("div #id.class[attr=test]", document.getElementById("id")));
+</script>
+</html>
